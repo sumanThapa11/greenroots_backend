@@ -105,21 +105,22 @@ class Payment(models.Model):
 
 class Plants(models.Model):
     name = models.CharField(max_length=200)
-    unit_price = models.DecimalField(max_digits=5, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=9, decimal_places=2)
     suitable_temperature = models.CharField(max_length=100)
     description  = models.TextField()
+    image = models.ImageField(default='indoor.jpg')
     category = models.ForeignKey(Category, related_name='plants', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
 
-class PlantImage(models.Model):
-    image = models.ImageField()
-    plants = models.ForeignKey(Plants, related_name="plants_image", on_delete=models.CASCADE)
+# class PlantImage(models.Model):
+#     image = models.ImageField()
+#     plants = models.ForeignKey(Plants, related_name="plants_image", on_delete=models.CASCADE)
 
-    def __str__(self):
-        return str(self.plants)
+#     def __str__(self):
+#         return str(self.plants)
 
 
 class Cart(models.Model):

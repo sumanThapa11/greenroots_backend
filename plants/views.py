@@ -117,6 +117,9 @@ class PlantList(APIView):
 
 
 class CartList(APIView):
+
+    permission_classes = [IsAuthenticated]
+    
     def get(self,request,pk=None):
 
         if pk is not None:
@@ -133,15 +136,24 @@ class CartList(APIView):
         serializer = CartSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        try:
+            cart = self.request.user.cart.id
+            return Response({'message':'Cart already exists'},status=status.HTTP_201_CREATED)
+        except:
+            serializer.save(user=self.request.user)
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        # serializer.save(user=self.request.user)
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
+       
+    
     def delete(self,request,pk):
         cart = get_object_or_404(Cart,pk=pk)
         cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CartItemList(APIView):
+
+    permission_classes = [IsAuthenticated]
     def get(self,request,pk=None):
 
         if pk is not None:
@@ -158,8 +170,15 @@ class CartItemList(APIView):
         serializer = CartItemSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        try:
+            cartItem = CartItem.objects.get(plant=serializer.validated_data['plant'],cart=self.request.user.cart)
+            print(cartItem)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except CartItem.DoesNotExist:
+            serializer.save(cart=self.request.user.cart)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)        
+        
 
     def put(self,request,pk):
         cart_item = get_object_or_404(CartItem, pk=pk)

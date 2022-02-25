@@ -1,4 +1,5 @@
 from asyncore import write
+from statistics import mode
 from django.forms import models
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -41,33 +42,51 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
 
 
-class CategorySerializer(serializers.ModelSerializer):
-   
-    class Meta:
-        model = Category
-        fields = ['id','name','image','description','numberOfPlants']
+
 
 
 class PlantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Plants
-        fields = ['id','name','unit_price','suitable_temperature','description','category']
+        fields = ['id','name','unit_price','suitable_temperature','description','image','category']
 
 
+class CategorySerializer(serializers.ModelSerializer):
+   
+    plants = PlantSerializer(many=True,read_only = True)
+
+    class Meta:
+        model = Category
+        fields = ['id','name','image','description','numberOfPlants','plants']
+
+        
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['id','quantity','cart','plant','total']
+        extra_kwargs = {"cart":{"required":False, "allow_null":True}}
+
 
 
 class CartSerializer(serializers.ModelSerializer):
+
+    
     cart_item = CartItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Cart
         fields = ['id','user','total','cart_item']
+        extra_kwargs = {"user":{"required":False, "allow_null":True}}
+
+    def create(self, validated_data):
+    
+        return super().create(validated_data)
 
 
-
+#to get all the plants in each category
+# class PlantsInCategorySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Category
+#         fields = ['id',]
 
