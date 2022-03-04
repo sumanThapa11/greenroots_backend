@@ -116,6 +116,16 @@ class PlantList(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+#for getting the cart of currently logged in user
+class UsersCart(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        cart = Cart.objects.get(user=self.request.user)
+        serializer = UserCartSerializer(cart)
+        return Response(serializer.data)
+
+
 class CartList(APIView):
 
     permission_classes = [IsAuthenticated]

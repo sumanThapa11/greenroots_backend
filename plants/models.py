@@ -88,13 +88,6 @@ class Category(models.Model):
     def numberOfPlants(self):
         return self.plants.all().count
 
-# class CategoryImage(models.Model):
-#     image = models.ImageField()
-#     category = models.ForeignKey(Category, related_name='category_image', on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return str(self.category)
-
 
 class Payment(models.Model):
     payment_type = models.CharField(max_length=100)
@@ -113,14 +106,6 @@ class Plants(models.Model):
 
     def __str__(self):
         return self.name
-
-
-# class PlantImage(models.Model):
-#     image = models.ImageField()
-#     plants = models.ForeignKey(Plants, related_name="plants_image", on_delete=models.CASCADE)
-
-#     def __str__(self):
-#         return str(self.plants)
 
 
 class Cart(models.Model):
@@ -169,8 +154,6 @@ class PlantOrder(models.Model):
 
     def __str__(self):
         return str(self.plant)
-
-
 
 
 

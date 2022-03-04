@@ -60,18 +60,39 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id','name','image','description','numberOfPlants','plants']
 
-        
-class CartItemSerializer(serializers.ModelSerializer):
+    
+
+#for currently logged in user
+class UserCartItemSerializer(serializers.ModelSerializer):
+    
+    plant = serializers.StringRelatedField()
     class Meta:
         model = CartItem
         fields = ['id','quantity','cart','plant','total']
         extra_kwargs = {"cart":{"required":False, "allow_null":True}}
 
 
+#for currently logged in user
+class UserCartSerializer(serializers.ModelSerializer):
+
+    cart_item = UserCartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id','user','total','cart_item']
+        extra_kwargs = {"user":{"required":False, "allow_null":True}}
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = CartItem
+        fields = ['id','quantity','cart','plant','total']
+        extra_kwargs = {"cart":{"required":False, "allow_null":True}}
+
 
 class CartSerializer(serializers.ModelSerializer):
 
-    
     cart_item = CartItemSerializer(many=True, read_only=True)
 
     class Meta:
