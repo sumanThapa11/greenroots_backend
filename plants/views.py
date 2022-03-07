@@ -3,6 +3,7 @@ from os import stat
 from django.http import response
 from django.shortcuts import get_object_or_404, render
 
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -121,9 +122,17 @@ class UsersCart(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
-        cart = Cart.objects.get(user=self.request.user)
+        cart = get_object_or_404(Cart,user=self.request.user)
         serializer = UserCartSerializer(cart)
-        return Response(serializer.data)
+        if(len(serializer.data["cart_item"])!=0):
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_202_ACCEPTED)
+    
+    def delete(self,request):
+        cart = get_object_or_404(Cart,pk=self.request.user.cart.id)
+        cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CartList(APIView):
@@ -202,3 +211,50 @@ class CartItemList(APIView):
         cart_item = get_object_or_404(CartItem,pk=pk)
         cart_item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class OrderList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        orders = Orders.objects.all()
+        serializer = OrderSerializer(orders,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        serializer = OrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=self.request.user)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def delete(self,request,pk):
+        order = get_object_or_404(Orders,pk=pk)
+        order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PlantOrderList(APIView):
+    def get(self,request):
+        plantOrder = PlantOrder.objects.all()
+        serializer = PlantOrderSerializer(plantOrder,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        serializer = PlantOrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+
+class PaymentList(APIView):
+
+    def get(self,request):
+        payment = Payment.objects.all()
+        serializer = PaymentSerializer(payment,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        serializer = PaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data,status=status.HTTP_201_CREATED)

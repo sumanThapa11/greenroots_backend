@@ -1,11 +1,12 @@
 from asyncore import write
 from statistics import mode
+# from attr import field
 from django.forms import models
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 
-from plants.models import CartItem, Category, CustomUser, Plants, Cart
+from plants.models import CartItem, Category, CustomUser, Orders, Payment, PlantOrder, Plants, Cart
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -42,9 +43,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return user
 
 
-
-
-
 class PlantSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -66,9 +64,10 @@ class CategorySerializer(serializers.ModelSerializer):
 class UserCartItemSerializer(serializers.ModelSerializer):
     
     plant = serializers.StringRelatedField()
+  
     class Meta:
         model = CartItem
-        fields = ['id','quantity','cart','plant','total']
+        fields = ['id','quantity','cart','plant','total','plantId']
         extra_kwargs = {"cart":{"required":False, "allow_null":True}}
 
 
@@ -103,6 +102,25 @@ class CartSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
     
         return super().create(validated_data)
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id','total','payment','delivery_address']
+
+
+class PlantOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlantOrder
+        fields = ['id','quantity','total','order','plant']
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['id','payment_type']
+
 
 
 #to get all the plants in each category

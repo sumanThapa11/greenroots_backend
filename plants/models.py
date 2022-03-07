@@ -5,6 +5,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db.models.base import Model
 
 
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self,email,first_name,last_name,address,phone,password=None):
 
@@ -135,12 +137,16 @@ class CartItem(models.Model):
     def total(self):
         return (self.quantity * self.plant.unit_price)
 
+    @property
+    def plantId(self):
+        return (self.plant.id)
 
 class Orders(models.Model):
-    date = models.DateField()
-    total = models.DecimalField(max_digits=5, decimal_places=2)
+    date = models.DateField(auto_now_add=True)
+    total = models.DecimalField(max_digits=8, decimal_places=2)
     user = models.ForeignKey(CustomUser, related_name='orders', on_delete=models.CASCADE)
-    payment = models.OneToOneField(Payment, related_name='orders', on_delete=models.CASCADE)
+    payment = models.ForeignKey(Payment, related_name='orders', on_delete=models.CASCADE)
+    delivery_address = models.CharField(max_length=200)
 
     def __str__(self):
         return "order of "+ str(self.user)
@@ -148,7 +154,7 @@ class Orders(models.Model):
 
 class PlantOrder(models.Model):
     quantity = models.IntegerField()
-    total = models.DecimalField(max_digits=5, decimal_places=2)
+    total = models.DecimalField(max_digits=8, decimal_places=2)
     order = models.ForeignKey(Orders, related_name='plant_order', on_delete=models.CASCADE)
     plant = models.ForeignKey(Plants, related_name='plant_order',on_delete=models.CASCADE)
 

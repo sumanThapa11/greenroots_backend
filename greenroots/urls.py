@@ -26,7 +26,7 @@ from rest_framework_simplejwt.views import(
 from django.conf.urls.static import static
 from django.conf import settings
 
-from plants.views import CartItemList, CartList, PlantList, RegisterUser,LogoutUser,CategoryList,UsersCart
+from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, RegisterUser,LogoutUser,CategoryList,UsersCart,PlantOrderList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -47,12 +47,23 @@ urlpatterns = [
     path('api/carts/', CartList.as_view(), name='carts'),
     path('api/cart/<int:pk>/', CartList.as_view(), name='cart'),
 
-     path('api/user/cart/', UsersCart.as_view(), name='users cart'),
+    path('api/user/cart/', UsersCart.as_view(), name='users cart'),
 
     #CRUD cart_item
     path('api/cartItems/', CartItemList.as_view(), name='cart_items'),
     path('api/cartItems/<int:pk>/', CartItemList.as_view(), name='cart_item'),
 
+    #CRUD orders
+    path('api/orders/',OrderList.as_view(),name='orders'),
+    path('api/orders/<int:pk>/',OrderList.as_view(),name='order'),
+
+    #CRYD plantOrder
+    path('api/plantOrder/',PlantOrderList.as_view(),name='plantOrder'),
+
+
+    #CRUD payments
+    path('api/payments/',PaymentList.as_view(),name='payments'),
+    
 
 ]
 
