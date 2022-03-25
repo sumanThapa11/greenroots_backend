@@ -1,7 +1,14 @@
 from ast import Is
 from os import stat
+from signal import raise_signal
 from django.http import response
 from django.shortcuts import get_object_or_404, render
+
+import requests
+import base64
+
+from PIL import Image
+from urllib.request import urlopen
 
 
 from rest_framework.views import APIView
@@ -110,6 +117,13 @@ class PlantList(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+        
+    def patch(self,request,pk):
+        plant = get_object_or_404(Plants,pk=pk)
+        serializer = PlantSerializer(plant,data=request.data,partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'msg':'partial data updated'})
 
     def delete(self,request,pk):
         plant = get_object_or_404(Plants,pk=pk)
@@ -219,6 +233,8 @@ class OrderList(APIView):
     def get(self,request):
         orders = Orders.objects.all()
         serializer = OrderSerializer(orders,many=True)
+        current_user = self.request.user
+        print(current_user.orders.all())
         return Response(serializer.data)
 
     def post(self,request):
@@ -258,3 +274,88 @@ class PaymentList(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+
+class UsersPlantList(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        users_plant = UserPlant.objects.filter(user_id=self.request.user.id)
+        serializer = UsersPlantSerializer(users_plant,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        serializer = UsersPlantSerializer(data=request.data)
+        users_plants = UserPlant.objects.filter(user_id=self.request.user.id)
+        serializer.is_valid(raise_exception=True)
+
+        for users_plant in users_plants:
+            if (serializer.validated_data['plant_id'] == users_plant.plant_id):
+                return Response('plant already exists',status=status.HTTP_201_CREATED)
+
+        serializer.save(user_id=self.request.user)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+
+class UsersPlantDetails(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        plant_ids = []
+        users_plants = UserPlant.objects.filter(user_id=self.request.user.id)
+        for users_plant in users_plants:
+            plant_ids.append(users_plant.plant_id)
+        users_plants_details = Plants.objects.filter(name__in=plant_ids) 
+        serializer = PlantSerializer(users_plants_details,many=True)
+        return Response(serializer.data)
+
+
+class PlantScanner(APIView):
+
+    def get(self,request):
+        plants = Plants.objects.all()
+        for plant in plants:
+            print (plant.name)
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self,request):
+        serializer = PlantScannerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # print(serializer.validated_data['base64Image'])
+
+        api_key = '53HrxyOMU2WVk5Qd1QTDYzAjOTabAJwj6iqjgfvZIzuBJ8yfZm'
+
+        # with open("", "rb") as file:
+        #     images = [base64.b64encode(file.read()).decode("ascii")]
+
+        images = [serializer.validated_data['base64Image']]
+
+        json_data = {
+            "images": images,
+            "modifiers": ["crops_fast"],
+            "plant_details": ["common_names","name_authority","synonyms"]
+        }
+
+        response = requests.post(
+            "https://api.plant.id/v2/identify",
+            json=json_data,
+            headers={
+                "Content-Type": "application/json",
+                "Api-Key": api_key
+            }).json()
+        
+        print(response["suggestions"][0]["plant_name"].lower())    
+        print(response["suggestions"][0]["plant_details"]["scientific_name"])
+        print(response["suggestions"][0]["plant_details"]["common_names"])
+
+        plants = Plants.objects.all()
+        for plant in plants:
+            if (plant.name.lower()) == (response["suggestions"][0]["plant_name"].lower()) or (plant.name.lower()) == (response["suggestions"][0]["plant_details"]["scientific_name"].lower()):
+                print(plant.name)
+                plant_details = {"id":plant.id,"name":plant.name}
+                return Response(plant_details,status=status.HTTP_200_OK)
+            
+            for commonName in response["suggestions"][0]["plant_details"]["common_names"]:
+                if (plant.name.lower()) == (commonName.lower()):
+                    plant_details = {"id":plant.id,"name":plant.name}
+                    return Response(plant_details,status=status.HTTP_200_OK)
+        
+        return Response(serializer.data,status=status.HTTP_204_NO_CONTENT)

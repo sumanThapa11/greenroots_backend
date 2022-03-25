@@ -1,4 +1,4 @@
-from asyncore import write
+from asyncore import read, write
 from statistics import mode
 # from attr import field
 from django.forms import models
@@ -6,7 +6,9 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 
-from plants.models import CartItem, Category, CustomUser, Orders, Payment, PlantOrder, Plants, Cart
+import re
+
+from plants.models import CartItem, Category, CustomUser, Orders, Payment, PlantOrder, Plants, Cart, UserPlant
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -48,6 +50,17 @@ class PlantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plants
         fields = ['id','name','unit_price','suitable_temperature','description','image','category']
+
+    def validate_suitable_temperature(self, attrs):
+        pattern = '[0-9][0-9]-[0-9][0-9]'
+        
+        if len(attrs)>5:
+            raise serializers.ValidationError("suitable temperature pattern is 12-40")
+        else:
+            result = re.match(pattern,attrs)
+            if result == None:
+                raise serializers.ValidationError("pattern not matched")
+        return attrs
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -120,6 +133,19 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ['id','payment_type']
+
+
+class UsersPlantSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserPlant
+        fields = ['id','user_id','plant_id']
+        extra_kwargs = {"user_id":{"required":False, "allow_null":True}}
+
+
+class PlantScannerSerializer(serializers.Serializer):
+    base64Image = serializers.CharField()
+
 
 
 

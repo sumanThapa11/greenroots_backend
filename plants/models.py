@@ -162,6 +162,11 @@ class PlantOrder(models.Model):
         return str(self.plant)
 
 
+class UserPlant(models.Model):
+    user_id = models.ForeignKey(CustomUser,related_name='users_plant',on_delete=models.CASCADE)
+    plant_id = models.ForeignKey(Plants,related_name='users_plant',on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ('user_id','plant_id')
 
 

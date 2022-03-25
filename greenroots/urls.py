@@ -17,6 +17,7 @@ from os import name
 from xml.dom.minidom import Document
 from django.contrib import admin
 from django.urls import path
+from plants.models import UserPlant
 
 from rest_framework_simplejwt.views import(
     TokenObtainPairView,
@@ -26,7 +27,7 @@ from rest_framework_simplejwt.views import(
 from django.conf.urls.static import static
 from django.conf import settings
 
-from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, RegisterUser,LogoutUser,CategoryList,UsersCart,PlantOrderList
+from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -60,11 +61,16 @@ urlpatterns = [
     #CRYD plantOrder
     path('api/plantOrder/',PlantOrderList.as_view(),name='plantOrder'),
 
-
     #CRUD payments
     path('api/payments/',PaymentList.as_view(),name='payments'),
-    
 
+    #CRUD users plant
+    path('api/user/plants/',UsersPlantList.as_view(),name='user_plants'),
+
+    path('api/user/plant_details/',UsersPlantDetails.as_view(),name='user_plant_details'),
+
+    #SCAN plants
+    path('api/scan_plants/',PlantScanner.as_view(),name='plant scanner'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
