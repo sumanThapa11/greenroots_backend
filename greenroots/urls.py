@@ -27,7 +27,7 @@ from rest_framework_simplejwt.views import(
 from django.conf.urls.static import static
 from django.conf import settings
 
-from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
+from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList, SendEmailToken, UserDeviceTokenList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -71,6 +71,15 @@ urlpatterns = [
 
     #SCAN plants
     path('api/scan_plants/',PlantScanner.as_view(),name='plant scanner'),
+
+    #CRUD userDeviceToken
+    path('api/userdevice/',UserDeviceTokenList.as_view(),name='user_device_tokens'),
+    path('api/userdevice/<int:pk>/',UserDeviceTokenList.as_view(),name='user_device_token'),
+
+
+    #Send token via email
+    path('api/sendtoken/',SendEmailToken.as_view(),name='send_token'),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

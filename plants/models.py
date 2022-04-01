@@ -1,7 +1,8 @@
 from email.policy import default
 from itertools import product
+from tabnanny import verbose
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db.models.base import Model
 
 
@@ -50,7 +51,7 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser,PermissionsMixin):
     email = models.EmailField(verbose_name='email address', max_length=70,unique=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -79,6 +80,10 @@ class CustomUser(AbstractBaseUser):
 
 
 class Category(models.Model):
+
+    class Meta:
+        verbose_name_plural = "Categories"
+
     name = models.CharField(max_length=100)
     image = models.ImageField(default='plant1.PNG')
     description = models.CharField(max_length=500)
@@ -142,6 +147,10 @@ class CartItem(models.Model):
         return (self.plant.id)
 
 class Orders(models.Model):
+
+    class Meta:
+        verbose_name_plural = "Orders"
+
     date = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=8, decimal_places=2)
     user = models.ForeignKey(CustomUser, related_name='orders', on_delete=models.CASCADE)
@@ -169,4 +178,10 @@ class UserPlant(models.Model):
     class Meta:
         unique_together = ('user_id','plant_id')
 
+
+class UserDeviceToken(models.Model):
+    user_id = models.ForeignKey(CustomUser,related_name='user_device_token',on_delete=models.CASCADE)
+    token = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 

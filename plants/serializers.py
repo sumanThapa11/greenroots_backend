@@ -8,7 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 
 import re
 
-from plants.models import CartItem, Category, CustomUser, Orders, Payment, PlantOrder, Plants, Cart, UserPlant
+from plants.models import CartItem, Category, CustomUser, Orders, Payment, PlantOrder, Plants, Cart, UserDeviceToken, UserPlant
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -147,7 +147,15 @@ class PlantScannerSerializer(serializers.Serializer):
     base64Image = serializers.CharField()
 
 
+class UserDeviceTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDeviceToken
+        fields = ['id','user_id','token']
+        extra_kwargs = {"user_id":{"required":False, "allow_null":True}}
 
+
+class SendEmailTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
 #to get all the plants in each category
 # class PlantsInCategorySerializer(serializers.ModelSerializer):

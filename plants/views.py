@@ -4,12 +4,19 @@ from signal import raise_signal
 from django.http import response
 from django.shortcuts import get_object_or_404, render
 
+from django.core.mail import send_mail
+
 import requests
+import json
 import base64
+
+import pyotp
 
 from PIL import Image
 from urllib.request import urlopen
 
+# from firebase_admin.messaging import Message, Notification
+# from fcm_django.models import FCMDevice
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -87,7 +94,7 @@ class CategoryList(APIView):
         category = get_object_or_404(Category,pk=pk)
         category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+  
 
 class PlantList(APIView):
 
@@ -95,12 +102,12 @@ class PlantList(APIView):
 
         if pk is not None:
             plant = Plants.objects.get(id=pk)
-            serializer = PlantSerializer(plant)
-           
+            serializer = PlantSerializer(plant)          
             return Response(serializer.data)
-        
+
         plants = Plants.objects.all()
         serializer = PlantSerializer(plants,many=True)
+        
         return Response(serializer.data)
 
     def post(self,request):
@@ -108,6 +115,34 @@ class PlantList(APIView):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        url = "https://fcm.googleapis.com/fcm/send"
+
+        registration_ids = []
+        userDevices =  UserDeviceToken.objects.all()
+
+        for device in userDevices:
+            registration_ids.append(device.token)
+
+        payload = json.dumps({
+        "registration_ids": registration_ids,
+        "notification": {
+            "body": "New plant has arrived in our shop.",
+            "title": "chalyo la!!",
+            "android_channel_id": "greenroots",
+            "sound": "false"
+        }
+        })
+
+        headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=AAAA454cXsk:APA91bGgCS-E896n4AiDFEs5vVA19vsqHgIoqp_fSa8AyZfyhiWW_osXBqnz8nPW8D-6Jt3_amXSHgDdTlumTHwKgp9PMrCoJGeMZNX39WfxNg8JeWXgAnFfTRRdpJKOCDAuBIzO4V-d'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+        print(response.text)
+    
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def put(self,request,pk=None):
@@ -345,7 +380,7 @@ class PlantScanner(APIView):
         print(response["suggestions"][0]["plant_name"].lower())    
         print(response["suggestions"][0]["plant_details"]["scientific_name"])
         print(response["suggestions"][0]["plant_details"]["common_names"])
-
+        plant_name = response["suggestions"][0]["plant_name"]
         plants = Plants.objects.all()
         for plant in plants:
             if (plant.name.lower()) == (response["suggestions"][0]["plant_name"].lower()) or (plant.name.lower()) == (response["suggestions"][0]["plant_details"]["scientific_name"].lower()):
@@ -357,5 +392,46 @@ class PlantScanner(APIView):
                 if (plant.name.lower()) == (commonName.lower()):
                     plant_details = {"id":plant.id,"name":plant.name}
                     return Response(plant_details,status=status.HTTP_200_OK)
-        
-        return Response(serializer.data,status=status.HTTP_204_NO_CONTENT)
+
+        no_plant_details = {"id":0,"name":plant_name}
+        print(no_plant_details)
+        return Response(no_plant_details,status=status.HTTP_202_ACCEPTED)
+
+
+class UserDeviceTokenList(APIView):
+
+    permission_classes=[IsAuthenticated]
+    def get(self,request):
+        device_tokens = UserDeviceToken.objects.all()
+        serializer = UserDeviceTokenSerializer(device_tokens,many=True)
+        return Response(serializer.data)
+
+    def post(self,request):
+        serializer = UserDeviceTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user_id=self.request.user)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def delete(self,request,pk):
+        device_token = get_object_or_404(UserDeviceToken,pk=pk)
+        device_token.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SendEmailToken(APIView):
+    def post(self,request):
+        serializer = SendEmailTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recepeint_email = serializer.validated_data['email']
+
+        totp = pyotp.TOTP('base32secret3232')
+        otp = str(totp.now())[:4]
+
+        send_mail( "OTP for your login",
+            otp,
+            "st58470414826@gmail.com",
+            [recepeint_email])
+        return Response({'otp':otp},status=status.HTTP_200_OK)
+
+
+

@@ -18,6 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 from datetime import timedelta
 
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import initialize_app
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -34,6 +37,7 @@ ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','192.168.1.69','192.168.18.3
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    
 ]
 
 MIDDLEWARE = [
@@ -183,3 +188,83 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+JAZZMIN_UI_TWEAKS = {
+    "theme":"literia"
+    }
+
+
+JAZZMIN_SETTINGS = {
+    "site_title": "greenroots",
+
+    "site_header":"greenroots",
+
+    "site_brand":"greenroots",
+
+    "site_logo": "images/favicon.ico",
+
+    "site_logo_classes": "img-circle",
+
+    "site_icon": None,
+
+    "welcome_sign": "Welcome to greenroots",
+
+    "copyright": "greenroots Pvt Ltd",
+
+    "hide_apps": [],
+
+    "icons": {
+        "plants.cart": "fas fa-cart-plus",
+        "plants.plants":"fas fa-seedling",
+        "plants.cartitem":"fas fa-cart-arrow-down",
+        "plants.category":"fas fa-clipboard-list",
+        "plants.customuser":"fas fa-user-astronaut",
+        "plants.orders":"fas fa-box",
+        "plants.payment":"fas fa-dollar-sign",
+        
+
+        "auth.Group": "fas fa-users"
+       
+    },
+
+    "topmenu_links": [
+
+        # Url that gets reversed (Permissions can be added)
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+
+        {"app":"plants"},
+    ],
+}
+
+
+from dotenv import load_dotenv
+load_dotenv()
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'st58470414826@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ.get('secretKey')
+EMAIL_USE_TLS = True
+
+
+
+
+# # cred = credentials.Certificate(r"C:\Users\user\Desktop\FYP\Development\Backend\greenroots\greenroots\serviceAccountKey.json")
+# # FIREBASE_APP = firebase_admin.initialize_app(cred)
+
+# initialize_app()
+
+# FCM_DJANGO_SETTINGS = {
+#      # default: _('FCM Django')
+#     "APP_VERBOSE_NAME": "[string for AppConfig's verbose_name]",
+#      # true if you want to have only one active device per registered user at a time
+#      # default: False
+#     "ONE_DEVICE_PER_USER": True,
+#      # devices to which notifications cannot be sent,
+#      # are deleted upon receiving error response from FCM
+#      # default: False
+#     "DELETE_INACTIVE_DEVICES": True,
+#     # Transform create of an existing Device (based on registration id) into
+#                 # an update. See the section
+#     # "Update of device with duplicate registration ID" for more details.
+#     "UPDATE_ON_DUPLICATE_REG_ID": True,
+# }
