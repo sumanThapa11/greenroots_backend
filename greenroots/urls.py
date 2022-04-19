@@ -27,7 +27,7 @@ from rest_framework_simplejwt.views import(
 from django.conf.urls.static import static
 from django.conf import settings
 
-from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList, SendEmailToken, UserDeviceTokenList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
+from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList, SendEmailToken, TopPlants, UserDeviceTokenList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -63,6 +63,7 @@ urlpatterns = [
 
     #CRUD payments
     path('api/payments/',PaymentList.as_view(),name='payments'),
+    path('api/payments/<int:pk>/',PaymentList.as_view(),name='payment'),
 
     #CRUD users plant
     path('api/user/plants/',UsersPlantList.as_view(),name='user_plants'),
@@ -79,6 +80,9 @@ urlpatterns = [
 
     #Send token via email
     path('api/sendtoken/',SendEmailToken.as_view(),name='send_token'),
+
+    #Chart
+    path('chart/',TopPlants.as_view(),name='chart'),
 
 ]
 

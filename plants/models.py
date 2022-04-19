@@ -104,6 +104,10 @@ class Payment(models.Model):
 
 
 class Plants(models.Model):
+
+    class Meta:
+        verbose_name_plural = "plants"
+
     name = models.CharField(max_length=200)
     unit_price = models.DecimalField(max_digits=9, decimal_places=2)
     suitable_temperature = models.CharField(max_length=100)

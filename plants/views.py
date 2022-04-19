@@ -1,14 +1,21 @@
 from ast import Is
+from multiprocessing import context
 from os import stat
+from re import template
 from signal import raise_signal
 from django.http import response
 from django.shortcuts import get_object_or_404, render
+
+from django.db.models import Sum
+from django.views.generic import TemplateView
 
 from django.core.mail import send_mail
 
 import requests
 import json
 import base64
+
+from rest_framework import permissions
 
 import pyotp
 
@@ -22,7 +29,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated,AllowAny
+from rest_framework.permissions import IsAuthenticated,AllowAny,IsAdminUser
 
 from plants.serializers import *
 from plants.models import *
@@ -66,7 +73,7 @@ class CategoryList(APIView):
     def get(self,request,pk=None):
 
         if pk is not None:
-            category = Category.objects.get(id=pk)
+            category = get_object_or_404(Category,pk=pk)
             serializer = CategorySerializer(category)
            
             return Response(serializer.data)
@@ -97,6 +104,7 @@ class CategoryList(APIView):
   
 
 class PlantList(APIView):
+    # permission_classes = [IsAuthenticated]
 
     def get(self,request,pk=None):
 
@@ -106,7 +114,7 @@ class PlantList(APIView):
             return Response(serializer.data)
 
         plants = Plants.objects.all()
-        serializer = PlantSerializer(plants,many=True)
+        serializer = PlantSerializer(plants,many=True)    
         
         return Response(serializer.data)
 
@@ -127,8 +135,8 @@ class PlantList(APIView):
         payload = json.dumps({
         "registration_ids": registration_ids,
         "notification": {
-            "body": "New plant has arrived in our shop.",
-            "title": "chalyo la!!",
+            "body": "Checkout our new plant.",
+            "title": "New Plant!!",
             "android_channel_id": "greenroots",
             "sound": "false"
         }
@@ -268,8 +276,8 @@ class OrderList(APIView):
     def get(self,request):
         orders = Orders.objects.all()
         serializer = OrderSerializer(orders,many=True)
-        current_user = self.request.user
-        print(current_user.orders.all())
+        # current_user = self.request.user
+        # print(current_user.orders.all())
         return Response(serializer.data)
 
     def post(self,request):
@@ -309,6 +317,19 @@ class PaymentList(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def put(self,request,pk=None):
+        payment = get_object_or_404(Payment, pk=pk)
+        serializer = PaymentSerializer(payment, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self,request,pk):
+        payment = get_object_or_404(Payment,pk=pk)
+        payment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UsersPlantList(APIView):
@@ -407,9 +428,14 @@ class UserDeviceTokenList(APIView):
         return Response(serializer.data)
 
     def post(self,request):
+       
         serializer = UserDeviceTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user_id=self.request.user)
+        try:
+            UserDeviceToken.objects.get(token=serializer.validated_data['token']) 
+            return Response(serializer.data,status=status.HTTP_201_CREATED)
+        except UserDeviceToken.DoesNotExist:
+            serializer.save(user_id=self.request.user)
         return Response(serializer.data,status=status.HTTP_201_CREATED)
 
     def delete(self,request,pk):
@@ -434,4 +460,20 @@ class SendEmailToken(APIView):
         return Response({'otp':otp},status=status.HTTP_200_OK)
 
 
-
+# for chart
+class TopPlants(TemplateView):
+    
+    template_name = 'plants/chart.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+    
+        plants = PlantOrder.objects.values('plant').annotate(total_plants_sold=Sum('quantity')).order_by('-total_plants_sold')[:5]
+        # print(plants)
+        for plant in plants:
+            single_plant = Plants.objects.get(id=plant['plant'])
+            plant['plant'] = single_plant.name
+            # print(single_plant.name)
+       
+        context["qs"] = plants
+       
+        return context

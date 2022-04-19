@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-usp8filb*m8%xj1vti$b-3bsea#87+gs4#m(m*nz)m3)lkotgg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','192.168.1.69','192.168.18.36']
+ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','192.168.1.69','192.168.18.36','100.64.240.100','100.64.224.33']
 
 
 # Application definition
@@ -66,7 +66,7 @@ ROOT_URLCONF = 'greenroots.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
