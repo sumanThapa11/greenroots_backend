@@ -1,4 +1,5 @@
 from ast import Is
+import email
 from multiprocessing import context
 from os import stat
 from re import template
@@ -477,3 +478,44 @@ class TopPlants(TemplateView):
         context["qs"] = plants
        
         return context
+
+
+class SearchPlant(APIView):
+
+    def post(self,request):
+        serializer = SearchPlantSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        plant_name = serializer.validated_data["plant_name"].lower()
+        # print(plant_name)
+        plants = Plants.objects.all()
+        for plant in plants:
+            if(plant.name.lower() == plant_name):
+                # print(plant.name.lower())
+                plant_details = {"id":plant.id,"name":plant.name}
+                return Response(plant_details,status=status.HTTP_200_OK)
+           
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SearchUser(APIView):
+    def post(self,request):
+        serializer = SearchUserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_email = serializer.validated_data["email"]
+        try:
+            CustomUser.objects.get(email=user_email)
+            return Response(status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ResetPassword(APIView):
+    def post(self,request):
+        serializer = ResetPassswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_email = serializer.validated_data['email']
+        user_password = serializer.validated_data['password']
+        user = CustomUser.objects.get(email=user_email)
+        user.set_password(user_password)
+        user.save()
+        return Response(status=status.HTTP_205_RESET_CONTENT)
+

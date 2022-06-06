@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-usp8filb*m8%xj1vti$b-3bsea#87+gs4#m(m*nz)m3)lkotgg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','192.168.1.69','192.168.18.36','100.64.240.100','100.64.224.33']
+ALLOWED_HOSTS = ['10.0.2.2','127.0.0.1','localhost','192.168.1.69','192.168.18.36','100.64.240.100','100.64.224.33','192.168.1.74']
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'django_extensions',
     
 ]
 
@@ -190,7 +191,36 @@ SIMPLE_JWT = {
 }
 
 JAZZMIN_UI_TWEAKS = {
-    "theme":"literia"
+    "theme":"literia",
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-success",
+    "accent": "accent-teal",
+    "navbar": "navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-info",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    # "theme": "cyborg",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
     }
 
 
@@ -246,7 +276,9 @@ EMAIL_HOST_PASSWORD = os.environ.get('secretKey')
 EMAIL_USE_TLS = True
 
 
-
+GRAPH_MODELS = {
+  'app_labels': ["plants"],
+}
 
 # # cred = credentials.Certificate(r"C:\Users\user\Desktop\FYP\Development\Backend\greenroots\greenroots\serviceAccountKey.json")
 # # FIREBASE_APP = firebase_admin.initialize_app(cred)

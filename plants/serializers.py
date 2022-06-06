@@ -157,6 +157,27 @@ class UserDeviceTokenSerializer(serializers.ModelSerializer):
 class SendEmailTokenSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
+
+class SearchPlantSerializer(serializers.Serializer):
+    plant_name = serializers.CharField(max_length = 200)
+
+
+class SearchUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPassswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=255)
+    password2 = serializers.CharField(max_length=255)
+
+    def validate(self,attrs):
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        if password != password2:
+            raise serializers.ValidationError("Password and confirm password doesn't match")
+        return attrs
+
 #to get all the plants in each category
 # class PlantsInCategorySerializer(serializers.ModelSerializer):
 #     class Meta:

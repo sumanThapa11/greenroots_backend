@@ -27,7 +27,7 @@ from rest_framework_simplejwt.views import(
 from django.conf.urls.static import static
 from django.conf import settings
 
-from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList, SendEmailToken, TopPlants, UserDeviceTokenList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
+from plants.views import CartItemList, CartList, OrderList, PaymentList, PlantList, PlantScanner, RegisterUser,LogoutUser,CategoryList, ResetPassword, SearchPlant, SearchUser, SendEmailToken, TopPlants, UserDeviceTokenList,UsersCart,PlantOrderList, UsersPlantDetails, UsersPlantList
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -83,6 +83,15 @@ urlpatterns = [
 
     #Chart
     path('chart/',TopPlants.as_view(),name='chart'),
+
+    #Search plants
+    path('api/search_plant/',SearchPlant.as_view(),name='search_plant'),
+
+    #Search user
+    path('api/search_user/',SearchUser.as_view(),name="search_user"),
+
+    #Reset password
+    path('api/reset_password/',ResetPassword.as_view(),name='reset password'),
 
 ]
 

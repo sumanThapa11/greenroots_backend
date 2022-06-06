@@ -4,8 +4,11 @@ from tabnanny import verbose
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db.models.base import Model
-
-
+from django.db.models.signals import post_save
+import json
+from django.forms import ValidationError
+import requests
+import re
 
 
 class CustomUserManager(BaseUserManager):
@@ -102,6 +105,12 @@ class Payment(models.Model):
     def __str__(self):
         return self.payment_type
 
+def validate_suitable_temperature(value):
+    pattern = '[0-9][0-9]-[0-9][0-9]'
+    result = re.match(pattern,value)
+
+    if result == None:
+        raise ValidationError('Please enter a valid temperatue eg: 02-27')
 
 class Plants(models.Model):
 
@@ -110,7 +119,7 @@ class Plants(models.Model):
 
     name = models.CharField(max_length=200)
     unit_price = models.DecimalField(max_digits=9, decimal_places=2)
-    suitable_temperature = models.CharField(max_length=100)
+    suitable_temperature = models.CharField(validators=[validate_suitable_temperature], max_length=5)
     description  = models.TextField()
     image = models.ImageField(default='indoor.jpg')
     category = models.ForeignKey(Category, related_name='plants', on_delete=models.CASCADE)
@@ -189,3 +198,35 @@ class UserDeviceToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+def send_notification(sender, instance, created, **kwargs):
+
+    if created:
+        url = "https://fcm.googleapis.com/fcm/send"
+
+        registration_ids = []
+        userDevices =  UserDeviceToken.objects.all()
+
+        for device in userDevices:
+            registration_ids.append(device.token)
+
+        payload = json.dumps({
+        "registration_ids": registration_ids,
+        "notification": {
+            "body": "Checkout our new plant.",
+            "title": "New Plant!!",
+            "android_channel_id": "greenroots",
+            "sound": "false"
+        }
+        })
+
+        headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=AAAA454cXsk:APA91bGgCS-E896n4AiDFEs5vVA19vsqHgIoqp_fSa8AyZfyhiWW_osXBqnz8nPW8D-6Jt3_amXSHgDdTlumTHwKgp9PMrCoJGeMZNX39WfxNg8JeWXgAnFfTRRdpJKOCDAuBIzO4V-d'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        print(response.text)
+        print("notification sent")
+    
+post_save.connect(send_notification, sender=Plants)
